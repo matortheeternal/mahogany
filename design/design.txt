@@ -1,0 +1,29 @@
+1. we have a callback
+2. the callback can either pass or fail
+3. we want to execute all expectations even if one or more fails
+4. we want to pass only if all expectations passed
+5. we want to print an error message and  stack trace when an expectation fails
+6. we want to have rich matchers
+7. ... etc.
+
+
+TSuite:
+- can have a context suite
+- can fail or pass
+- has a callback to execute
+- has an execute function
+- has a list of children suites/specs
+- can have a beforeEach
+- can have an afterEach
+- can have a beforeAll
+- can have an afterAll
+
+TSpec:
+- has a context suite
+- can fail or pass
+- has a callback to execute
+
+
+TFailure:
+- has a context spec
+- has an exception object
