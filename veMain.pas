@@ -118,6 +118,41 @@ begin
   end;
 end;
 
+{ Expectations }
+procedure Expect(expectation: Boolean; description: String);
+begin
+  if not expectation then
+    raise Exception.Create(description);
+end;
+
+procedure ExpectEqual(v1, v2: Variant; description: String);
+const
+  varInteger = 3;
+  varDouble = 5;
+  varShortInt = 16;
+  varString =  256; { Pascal string }
+  varUString = 258; { Unicode string }
+  { SEE http://stackoverflow.com/questions/24731098/what-does-mean-vartypeavariant-273-or-111
+    for more }
+  IntError = 'Expected "%d", found "%d"';
+  FloatError = 'Expected "%0.4f", found "%0.4f"';
+  StringError = 'Expected "%s", found "%s"';
+  CustomError = '%s, type %d';  
+var
+  vt: Integer;
+begin
+  if v1 <> v2 then begin
+    vt := VarType(v1);
+    case vt of
+      varInteger: raise Exception.Create(Format(IntError, [v2, v1]));
+      varShortInt: raise Exception.Create(Format(IntError, [Integer(v2), Integer(v1)]));
+      varDouble: raise Exception.Create(Format(FloatError, [v2, v1]));
+      varString, varUString: raise Exception.Create(Format(StringError, [v2, v1]));
+      else raise Exception.Create(Format(CustomError, [description, vt]));
+    end;
+  end;
+end;
+
 
 {******************************************************************************}
 { Private
