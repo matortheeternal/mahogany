@@ -43,6 +43,7 @@ type
 
   // PRIVATE
   procedure CannotCallException(target, context: String);
+  procedure BuildFailedException(target, description: String; x: Exception);
 
 var
   MainSuites: TList;
@@ -60,16 +61,12 @@ implementation
 
 { Suite Functions }
 procedure Describe(description: String; callback: TProc);
-const
-  BuildFailedError = 'Failed to build test suite "%s": %s';
 begin
   try
     TSuite.Create(description, callback);
   except
-    on x: Exception do begin
-      x.Message := Format(BuildFailedError, [description, x.Message]);
-      raise x;
-    end;
+    on x: Exception do
+      BuildFailedException('test suite', description, x);
   end;
 end;
 
@@ -84,38 +81,34 @@ end;
 procedure AfterAll(callback: TProc);
 begin
   if (ActiveSuite = nil) then
-    raise Exception.Create('You cannot call AfterAll outside of a "describe".');
+    CannotCallException('AfterAll', 'Describe');
   ActiveSuite.afterAll := callback;
 end;
 
 procedure BeforeEach(callback: TProc);
 begin
   if (ActiveSuite = nil) then
-    raise Exception.Create('You cannot call BeforeEach outside of a "describe".');
+    CannotCallException('BeforeEach', 'Describe');
   ActiveSuite.beforeEach := callback;
 end;
 
 procedure AfterEach(callback: TProc);
 begin
   if (ActiveSuite = nil) then
-    raise Exception.Create('You cannot call AfterEach outside of a "describe".');
+    CannotCallException('AfterEach', 'Describe');
   ActiveSuite.afterEach := callback;
 end;
 
 { Spec Functions }
 procedure It(description: String; callback: TProc);
-const
-  BuildFailedError = 'Failed to build spec "%s": %s';
 begin
   if (ActiveSuite = nil) then
-    raise Exception.Create('You cannot use call It outside of a "describe".');
+    CannotCallException('It', 'Describe');
   try
     TSpec.Create(description, callback);
   except
-    on x: Exception do begin
-      x.Message := Format(BuildFailedError, [description, x.Message]);
-      raise x;
-    end;
+    on x: Exception do
+      BuildFailedException('spec', description, x);
   end;
 end;
 
@@ -133,6 +126,14 @@ const
   CannotCallError = 'You cannot call "%s" outside of a "%s".';
 begin
   raise Exception.Create(Format(CannotCallError, [target, context]));
+end;
+
+procedure BuildFailedException(target, description: String; x: Exception);
+const
+  BuildFailedError = 'Failed to build %s "%s": %s';
+begin
+  x.Message := Format(BuildFailedError, [target, description, x.Message]);
+  raise x;
 end;
 
 { TSuite }
