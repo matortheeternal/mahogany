@@ -3,7 +3,7 @@ unit veMain;
 interface
 
 uses
-  SysUtils, Classes;
+  SysUtils, Classes, Variants;
 
 type
   TProc = reference to procedure;
@@ -11,6 +11,7 @@ type
     ['{C05D06D7-62D0-C7F0-D9B7-B86A41202749}']
     property context: ITest;
     property description: String;
+    property depth: Integer;
     property passed: Boolean;
     procedure Execute;
   end;
@@ -182,10 +183,14 @@ end;
 { TSuite }
 constructor ISuite.Create(description: String; callback: TProc);
 begin
-  // suites can be nested inside of each other
+  // default to a to-level suite
   context := nil;
+  depth := 0;  
+    
+  // suites can be nested inside of each other
   if Assigned(ActiveSuite) then begin
-    context := ActiveSuite as ITest;
+    context := ActiveSuite as ITest;  
+    depth := ActiveSuite.depth + 1;
     ActiveSuite.AddChild(self as ITest);
   end; 
   
@@ -218,7 +223,7 @@ begin
   if Assigned(BeforeAll) then BeforeAll;
 
   // execute each test in the suite
-  for i := 0 to Pred(children.Count) do begin
+  for i := 0 to Pred(children.Count) do
     if Supports(children[i], ITest, test) then begin
       // Setup before each test if given
       if Assigned(BeforeEach) then BeforeEach;
@@ -227,7 +232,6 @@ begin
       // Tear down after each test if given
       if Assigned(AfterEach) then AfterEach;
     end;
-  end;
 
   // Tear down after all tests if given
   if Assigned(AfterAll) then AfterAll;
@@ -265,7 +269,8 @@ end;
 constructor ISpec.Create(description: String; callback: TProc);
 begin                
   // enumerate the spec in the active suite's children
-  context := ActiveSuite as ITest;  
+  context := ActiveSuite as ITest;
+  depth := ActiveSuite.depth + 1;  
   ActiveSuite.AddChild(self as ITest);
   // set input properties
   self.description := description;
@@ -305,17 +310,21 @@ end;
 
 procedure IFailure.MarkContextFailed;
 const
-  // this saves us from an infinite loop if there is a recursive context
   maxTestDepth = 100;
   MaxTestDepthError = 'Max test depth of 100 reached, check for recursive contexts.';
 var
   currentContext: ITest;
   i: Integer;
 begin
+  // prepare to loop 
   currentContext := self.context;
   i := 1;
+
+  // loop from the failure's context up the stack
   while Assigned(currentContext) do begin
     currentContext.passed := false;
+    // recurse until we've gone up the maximum test depth 
+    // this saves us from an infinite loop if there is a recursive context
     currentContext := currentContext.context;  
     if (i = maxTestDepth) then 
       raise Exception.Create(MaxTestDepthError);
