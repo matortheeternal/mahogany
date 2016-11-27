@@ -22,6 +22,8 @@ type
     property afterAll: TProc;
     constructor Create(description: String; callback: TProc);
     procedure Execute;
+    function GetTestsCount: Integer;
+    function GetFailsCount: Integer;
     procedure AddChild(child: ITest);
     destructor Destroy;
   end;
@@ -229,6 +231,23 @@ begin
 
   // Tear down after all tests if given
   if Assigned(AfterAll) then AfterAll;
+end;
+
+
+function ISuite.GetTestsCount: Integer;
+begin
+  Result := children.Count;
+end;
+
+function ISuite.GetFailsCount: Integer;
+var
+  i: Integer;
+  test: Itest;
+begin
+  Result := 0;
+  for i := 0 to Pred(children.Count) do 
+    if Supports(children[i], ITest, test) and not test.passed then
+      Inc(Result);
 end;
 
 procedure ISuite.AddChild(child: ITest);
