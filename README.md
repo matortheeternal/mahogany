@@ -7,8 +7,8 @@ A jasmine-inspired testing framework for Delphi.  Allows you to use Delphi's ano
 * Use **It** to specify specs
 * Use **Expect** to specify an expectation
 * Use **ExpectEqual** and **ExpectException** for special expectations
-* Use **BeforeEach** and **AfterEach** for setup and teardown before and after tests in a suite
-* Use **BeforeAll** and **AfterAll** for setup and teardown before and after all of the tests in a suite
+* Use **BeforeEach** and **AfterEach** for setup and teardown before and after each test in a suite
+* Use **BeforeAll** and **AfterAll** for setup and teardown before and after a suite's tests
 
 ## Differences from Jasmine
 
