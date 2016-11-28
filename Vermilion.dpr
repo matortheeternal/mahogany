@@ -107,11 +107,19 @@ begin
 end;
 
 procedure RunVermilionTests;
+var
+  LogToConsole: TMessageProc;
 begin
-  RunTests(procedure(msg: String)
+  // log messages to the console
+  LogToConsole := procedure(msg: String)
     begin
       WriteLn(msg);
-    end);
+    end;
+
+  // run the tests and report failures
+  RunTests(LogToConsole);
+  WriteLn(' ');
+  ReportResults(LogToConsole);
 end;
 
 begin
