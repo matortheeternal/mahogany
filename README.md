@@ -1,5 +1,5 @@
 # mahogany
-A jasmine-inspired testing framework for Delphi.  Allows you to use Delphi's anonymous procedures to structure your code similar to how you would structure javascript tests with jasmine.
+A Jasmine-inspired testing framework for Delphi.  Allows you to use Delphi's anonymous procedures to structure your tests similar to how you would structure them with [Jasmine](https://jasmine.github.io/).
 
 ## Features
 
