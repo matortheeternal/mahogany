@@ -67,7 +67,7 @@ begin
       It('can be any other code that returns a boolean', procedure
         begin
           Expect(Pos('n', 'orange') > 0, 'orange has an n in it');
-          Expect(36 / 10000 = 0, '36 divided by 10000 is 0');
+          Expect(36 / 6 = 6, '36 divided by 6 is 6');
           Expect(not Assigned(obj), 'The variable `obj` should not be assigned');
         end);
     end);
@@ -80,30 +80,146 @@ begin
           ExpectEqual('test', 'test', '''test'' equals ''test''');
         end);
 
-      Describe('''ExpectException'' checks for an exception', procedure
+      Describe('''ExpectException'' checks for', procedure
         begin
-          It('It can expect a specific exception', procedure
-            begin
-              ExpectException(procedure
-                var
-                  i: Extended;
-                begin
-                  i := 5 / 0;
-                end, 'Division by zero');
-            end);
-
-          It('Or any exception', procedure
+          It('a specific exception', procedure
             begin
               ExpectException(procedure
                 var
                   i: Integer;
                 begin
-                  i := 9999999999999;
-                  i := i * i;
+                  i := 0;
+                  i := 1 div i;
+                end, 'Division by zero');
+            end);
+
+          It('any exception', procedure
+            begin
+              ExpectException(procedure
+                begin
+                  raise Exception.Create('Custom Exception');
                 end);
             end);
         end);
     end);
+
+    Describe('A spec', procedure
+      begin
+        It('is just a function, so it can contain any code', procedure
+          var
+            foo: Integer;
+          begin
+            foo := 0;
+            Inc(foo);
+
+            ExpectEqual(foo, 1, 'One equals one');
+          end);
+
+        It('can have more than one expectation', procedure
+          var
+            foo: Integer;
+          begin
+            foo := 0;
+            Inc(foo);
+
+            ExpectEqual(foo, 1, 'One equals one');
+            Expect(true, 'True passes');
+          end);
+      end);
+
+    Describe('A spec using BeforeEach and AfterEach', procedure
+      var
+        foo: Integer;
+      begin
+        BeforeEach(procedure
+          begin
+            Inc(foo);
+          end);
+
+        AfterEach(procedure
+          begin
+            foo := 0;
+          end);
+
+        It('it is just a function, so it can contain any code', procedure
+          begin
+            ExpectEqual(foo, 1, 'Foo should equal one');
+          end);
+
+        It('can have more than one expectation', procedure
+          begin
+            ExpectEqual(foo, 1, 'Foo should equal one');
+            Expect(true, 'True passes');
+          end);
+      end);
+
+    Describe('A spec using BeforeAll and AfterAll', procedure
+      var
+        foo: Integer;
+      begin
+        BeforeAll(procedure
+          begin
+            foo := 1;
+          end);
+
+        AfterAll(procedure
+          begin
+            foo := 0;
+          end);
+
+        It('Sets the initial value of foo before specs run', procedure
+          begin
+            ExpectEqual(foo, 1, 'Foo should equal 1');
+            Inc(foo);
+          end);
+
+        It('Does not reset foo between specs', procedure
+          begin
+            ExpectEqual(foo, 2, 'Foo should equal 2');
+          end);
+      end);
+
+    Describe('A spec', procedure
+      var
+        foo: Integer;
+      begin
+        BeforeEach(procedure
+          begin
+            foo := 0;
+            Inc(foo);
+          end);
+
+        AfterEach(procedure
+          begin
+            foo := 0;
+          end);
+
+        It('is just a function, so it can contain any code', procedure
+          begin
+            ExpectEqual(foo, 1, 'Foo should equal 1');
+          end);
+
+        It('can have more than one expectation', procedure
+          begin
+           ExpectEqual(foo, 1, 'Foo should equal 1');
+           Expect(true, 'True passes');
+          end);
+
+        Describe('nested inside a second describe', procedure
+          var
+            bar: Integer;
+          begin
+            BeforeEach(procedure
+              begin
+                bar := 1;
+              end);
+
+            It('can reference both scopes as needed', procedure
+              begin
+                ExpectEqual(foo, bar, 'Foo should equal bar');
+              end);
+          end);
+      end);
 end;
 
 procedure RunVermilionTests;
