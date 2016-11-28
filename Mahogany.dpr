@@ -201,8 +201,8 @@ begin
 
         It('can have more than one expectation', procedure
           begin
-           ExpectEqual(foo, 1, 'Foo should equal 1');
-           Expect(true, 'True passes');
+            ExpectEqual(foo, 1, 'Foo should equal 1');
+            Expect(true, 'True passes');
           end);
 
         Describe('nested inside a second describe', procedure
