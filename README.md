@@ -38,6 +38,10 @@ A suite
 
 ## Design
 
-Testing is broken into two major stages with Mahogany: building the tests and running them.  `Describe` and `It` build a nested structure of test suites and expectations.  `RunTests` iterates through all top-level test suites and executes them.
+Testing is broken into two major stages with Mahogany: building the tests and running them.  
+
+- `Describe` and `It` build a nested structure of test suites and expectations.
+- `RunTests` iterates through all top-level test suites and executes them.
+- `ReportResults` provides an overview of how many specs were run and how many failed.
 
 How test results are reported is up to the calling code.  You can use Mahogany's built-in reporting functionality to get a report of the suites and specs as they run by providing an anonymous procedure as a callback for log messages.  This can be used to log messages to the console, to a file, or however else meets your requirements.
