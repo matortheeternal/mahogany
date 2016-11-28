@@ -29,7 +29,7 @@ Describe('A suite', procedure
   end);
 ```
 
-When run outputs:
+Outputs the following when run:
 
 ```
 A suite
