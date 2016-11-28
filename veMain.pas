@@ -49,6 +49,10 @@ type
   procedure BeforeEach(callback: TProc);
   procedure AfterEach(callback: TProc);
   procedure It(description: String; callback: TProc);
+  procedure Expect(expectation: Boolean; description: String);
+  procedure ExpectEqual(v1, v2: Variant; description: String);
+  procedure ExpectException(proc: TProc); overload;
+  procedure ExpectException(proc: TProc; msg: String); overload;
 
   // PRIVATE
   procedure CannotCallException(target, context: String);
@@ -154,6 +158,48 @@ begin
       else raise Exception.Create(Format(CustomError, [description, vt]));
     end;
   end;
+end;
+
+procedure ExpectException(proc: TProc); overload;
+const
+  NoExceptionError = 'Expected an exception but no exception was rasied';
+var
+  exceptionRaised: Boolean;
+begin
+  exceptionRaised := false;
+  try
+    proc();
+  except
+    on x: Exception do begin
+      exceptionRaised := true;
+    end;
+  end;
+  // fail if the proc didn't raise an exception
+  if not exceptionRaised then
+    raise Exception.Create(NoExceptionError);
+end;
+
+procedure ExpectException(proc: TProc; msg: String);
+const
+  NoExceptionError = 'Expected exception "%s", but no exception was rasied';
+  WrongExceptionError = 'Expected exception "%s", but "%s" was raised';
+var
+  exceptionRaised: Boolean;
+begin
+  exceptionRaised := false;
+  try
+    proc();
+  except
+    on x: Exception do begin
+      exceptionRaised := true;
+      // fail if the proc raised the wrong exception
+      if msg <> x.Message then
+        raise Exception.Create(Format(WrongExceptionError, [msg, x.Message]));
+    end;
+  end;
+  // fail if the proc didn't raise an exception
+  if not exceptionRaised then
+    raise Exception.Create(Format(NoExceptionError, [msg]));
 end;
 
 
