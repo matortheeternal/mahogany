@@ -105,7 +105,7 @@ begin
 
     Describe('A spec', procedure
       begin
-        It('is just a function, so it can contain any code', procedure
+        It('is just a procedure, so it can contain any code', procedure
           var
             foo: Integer;
           begin
@@ -141,7 +141,7 @@ begin
             foo := 0;
           end);
 
-        It('it is just a function, so it can contain any code', procedure
+        It('it is just a procedure, so it can contain any code', procedure
           begin
             ExpectEqual(foo, 1, 'Foo should equal one');
           end);
@@ -194,7 +194,7 @@ begin
             foo := 0;
           end);
 
-        It('is just a function, so it can contain any code', procedure
+        It('is just a procedure, so it can contain any code', procedure
           begin
             ExpectEqual(foo, 1, 'Foo should equal 1');
           end);
