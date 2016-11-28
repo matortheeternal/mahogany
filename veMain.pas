@@ -13,6 +13,7 @@ type
     property description: String;
     property depth: Integer;
     property passed: Boolean;
+  TMessageProc = reference to procedure(msg: String);
     procedure Execute;
   end;
   ISuite = interface(ITest)
@@ -53,6 +54,7 @@ type
   procedure ExpectEqual(v1, v2: Variant; description: String);
   procedure ExpectException(proc: TProc); overload;
   procedure ExpectException(proc: TProc; msg: String); overload;
+  procedure RunTests(messageProc: TMessageProc);
 
   // PRIVATE
   procedure CannotCallException(target, context: String);
@@ -62,6 +64,7 @@ var
   MainSuites: TInterfaceList;
   Failures: TList;
   ActiveSuite: ISuite;
+  LogMessage: TMessageProc;
 
 implementation
 
@@ -200,6 +203,19 @@ begin
   // fail if the proc didn't raise an exception
   if not exceptionRaised then
     raise Exception.Create(Format(NoExceptionError, [msg]));
+end;
+
+{ Test Runner }
+procedure RunTests(messageProc: TMessageProc);
+var
+  i: Integer;
+  suite: TSuite;
+begin
+  LogMessage := messageProc;
+  for i := 0 to Pred(MainSuites.Count) do begin
+    suite := TSuite(MainSuites[i]);
+    suite.Execute;
+  end;
 end;
 
 
