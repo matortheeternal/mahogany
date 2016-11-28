@@ -28,6 +28,7 @@ type
     afterAll: TProc;
     constructor Create(description: String; callback: TProc);
     procedure Execute;
+    function GetSpecsCount: Integer;
     function GetTestsCount: Integer;
     function GetFailsCount: Integer;
     procedure AddChild(child: TTest);
@@ -62,10 +63,12 @@ type
   procedure ExpectException(proc: TProc); overload;
   procedure ExpectException(proc: TProc; msg: String); overload;
   procedure RunTests(messageProc: TMessageProc);
+  procedure ReportResults(messageProc: TMessageProc);
 
   // PRIVATE
   procedure CannotCallException(target, context: String);
   procedure BuildFailedException(target, description: String; x: Exception);
+  function GetSpecsCount: Integer;
 
 var
   MainSuites: TList;
@@ -225,6 +228,13 @@ begin
   end;
 end;
 
+procedure ReportResults(messageProc: TMessageProc);
+const
+  ReportMessage = '%d specs, %d failures';
+begin
+  messageProc(Format(ReportMessage, [GetSpecsCount, Failures.Count]));
+end;
+
 
 {******************************************************************************}
 { Private
@@ -249,7 +259,20 @@ begin
   raise x;
 end;
 
-{ ITest }
+{ Helper Functions }
+function GetSpecsCount: Integer;
+var
+  i: Integer;
+  suite: TSuite;
+begin
+  Result := 0;
+  for i := 0 to Pred(MainSuites.Count) do begin
+    suite := TSuite(MainSuites[i]);
+    Inc(Result, suite.GetSpecsCount);
+  end;
+end;
+
+{ TTest }
 procedure TTest.Execute;
 begin
   if Assigned(LogMessage) then
@@ -266,7 +289,7 @@ begin
   TFailure.Create(self, Exception.Create(msg));
 end;
 
-{ ISuite }
+{ TSuite }
 constructor TSuite.Create(description: String; callback: TProc);
 begin
   // default to a to-level suite
@@ -329,6 +352,21 @@ begin
   end;
 end;
 
+function TSuite.GetSpecsCount: Integer;
+var
+  i: Integer;
+  test: TTest;
+begin
+  Result := 0;
+  for i := 0 to Pred(children.Count) do begin
+    test := TTest(children[i]);
+    if test is TSuite then
+      Inc(Result, TSuite(test).GetSpecsCount)
+    else
+      Inc(Result);
+  end;
+end;
+
 function TSuite.GetTestsCount: Integer;
 begin
   Result := children.Count;
@@ -358,7 +396,7 @@ begin
   inherited;
 end;
 
-{ ISpec }
+{ TSpec }
 constructor TSpec.Create(description: String; callback: TProc);
 begin                
   // enumerate the spec in the active suite's children
@@ -383,7 +421,7 @@ begin
   end;
 end;
 
-{ IFailure }
+{ TFailure }
 constructor TFailure.Create(context: TTest; exception: Exception);
 var
   spacing: String;
