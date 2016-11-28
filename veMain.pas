@@ -339,7 +339,10 @@ begin
       if Assigned(BeforeEach) then BeforeEach;
       // execute the test
       test := TTest(children[i]);
-      test.Execute;
+      if test is TSuite then
+        TSuite(test).Execute
+      else if test is TSpec then
+        TSpec(test).Execute;
       // Tear down after each test if given
       if Assigned(AfterEach) then AfterEach;
     end;
