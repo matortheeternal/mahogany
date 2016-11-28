@@ -19,6 +19,8 @@ A Jasmine-inspired testing framework for Delphi.  Allows you to use Delphi's ano
 
 ## Example code
 
+### Code
+
 ```delphi
 Describe('A suite', procedure
   begin
@@ -29,7 +31,7 @@ Describe('A suite', procedure
   end);
 ```
 
-Outputs the following when run:
+### Log
 
 ```
 A suite
