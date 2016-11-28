@@ -7,39 +7,46 @@ uses
 
 type
   TProc = reference to procedure;
-  ITest = interface
-    ['{C05D06D7-62D0-C7F0-D9B7-B86A41202749}']
-    property context: ITest;
-    property description: String;
-    property depth: Integer;
-    property passed: Boolean;
   TMessageProc = reference to procedure(msg: String);
-    procedure Execute;
-  end;
-  ISuite = interface(ITest)
-    property children: TInterfaceList;
-    property beforeEach: TProc;
-    property afterEach: TProc;
-    property beforeAll: TProc;
-    property afterAll: TProc;
-    constructor Create(description: String; callback: TProc);
-    procedure Execute;
-    function GetTestsCount: Integer;
-    function GetFailsCount: Integer;
-    procedure AddChild(child: ITest);
-    destructor Destroy;
-  end;
-  ISpec = interface(ITest)
-    property callback: TProc;
-    constructor Create(description: String; callback: TProc);
+
+  TTest = class(TObject)
+  public
+    context: TTest;
+    description: String;
+    depth: Integer;
+    passed: Boolean;
     procedure Execute;
     procedure Fail(x: Exception); overload;
     procedure Fail(msg: String); overload;
   end;
-  IFailure = interface
-    property context: ISpec;
-    property exception: Exception;
-    constructor Create(context: ISpec; exception: Exception);
+
+  TSuite = class(TTest)
+    children: TList;
+    beforeEach: TProc;
+    afterEach: TProc;
+    beforeAll: TProc;
+    afterAll: TProc;
+    constructor Create(description: String; callback: TProc);
+    procedure Execute;
+    function GetTestsCount: Integer;
+    function GetFailsCount: Integer;
+    procedure AddChild(child: TTest);
+    destructor Destroy; override;
+  end;
+
+  TSpec = class(TTest)
+  public
+    callback: TProc;
+    constructor Create(description: String; callback: TProc);
+    procedure Execute;
+  end;
+
+  TFailure = class(TObject)
+  public
+    context: TTest;
+    exception: Exception;
+
+    constructor Create(context: TTest; exception: Exception);
     procedure MarkContextFailed;
   end;
 
@@ -61,9 +68,9 @@ type
   procedure BuildFailedException(target, description: String; x: Exception);
 
 var
-  MainSuites: TInterfaceList;
+  MainSuites: TList;
   Failures: TList;
-  ActiveSuite: ISuite;
+  ActiveSuite: TSuite;
   LogMessage: TMessageProc;
 
 implementation
@@ -79,7 +86,7 @@ implementation
 procedure Describe(description: String; callback: TProc);
 begin
   try
-    ISuite.Create(description, callback);
+    TSuite.Create(description, callback);
   except
     on x: Exception do
       BuildFailedException('test suite', description, x);
@@ -121,7 +128,7 @@ begin
   if (ActiveSuite = nil) then
     CannotCallException('It', 'Describe');
   try
-    ISpec.Create(description, callback);
+    TSpec.Create(description, callback);
   except
     on x: Exception do
       BuildFailedException('spec', description, x);
@@ -242,23 +249,40 @@ begin
   raise x;
 end;
 
-{ TSuite }
-constructor ISuite.Create(description: String; callback: TProc);
+{ ITest }
+procedure TTest.Execute;
+begin
+  if Assigned(LogMessage) then
+    LogMessage(StringOfChar(' ', depth * 2) + description);
+end;
+
+procedure TTest.Fail(x: Exception);
+begin
+  TFailure.Create(self, x);
+end;
+
+procedure TTest.Fail(msg: String);
+begin
+  TFailure.Create(self, Exception.Create(msg));
+end;
+
+{ ISuite }
+constructor TSuite.Create(description: String; callback: TProc);
 begin
   // default to a to-level suite
   context := nil;
   depth := 0;  
-    
+
   // suites can be nested inside of each other
   if Assigned(ActiveSuite) then begin
-    context := ActiveSuite as ITest;  
+    context := TTest(ActiveSuite);
     depth := ActiveSuite.depth + 1;
-    ActiveSuite.AddChild(self as ITest);
+    ActiveSuite.AddChild(TTest(self));
   end; 
   
   // set input properties
   self.description := description;
-  children := TInterfaceList.Create;
+  children := TList.Create;
   // the suite passes if it has no specs
   passed := true;
 
@@ -272,68 +296,75 @@ begin
       MainSuites.Add(self);
   finally
     // the suite should no longer be active once its callback completes
-    ActiveSuite := context;
+    ActiveSuite := TSuite(context);
   end;
 end;
 
-procedure ISuite.Execute;
+procedure TSuite.Execute;
 var
   i: Integer;
-  test: ITest;
+  test: TTest;
 begin
-  // Setup before all tests if given
-  if Assigned(BeforeAll) then BeforeAll;
+  try
+    inherited;
+    // Setup before all tests if given
+    if Assigned(BeforeAll) then BeforeAll;
 
-  // execute each test in the suite
-  for i := 0 to Pred(children.Count) do
-    if Supports(children[i], ITest, test) then begin
+    // execute each test in the suite
+    for i := 0 to Pred(children.Count) do begin
       // Setup before each test if given
       if Assigned(BeforeEach) then BeforeEach;
       // execute the test
+      test := TTest(children[i]);
       test.Execute;
       // Tear down after each test if given
       if Assigned(AfterEach) then AfterEach;
     end;
 
-  // Tear down after all tests if given
-  if Assigned(AfterAll) then AfterAll;
+    // Tear down after all tests if given
+    if Assigned(AfterAll) then AfterAll;
+  except
+    on x: Exception do
+      Fail(x);
+  end;
 end;
 
-
-function ISuite.GetTestsCount: Integer;
+function TSuite.GetTestsCount: Integer;
 begin
   Result := children.Count;
 end;
 
-function ISuite.GetFailsCount: Integer;
+function TSuite.GetFailsCount: Integer;
 var
   i: Integer;
-  test: Itest;
+  test: TTest;
 begin
   Result := 0;
-  for i := 0 to Pred(children.Count) do 
-    if Supports(children[i], ITest, test) and not test.passed then
+  for i := 0 to Pred(children.Count) do begin
+    test := TTest(children[i]);
+    if not test.passed then
       Inc(Result);
+  end;
 end;
 
-procedure ISuite.AddChild(child: ITest);
+procedure TSuite.AddChild(child: TTest);
 begin
   children.Add(child);
 end;
 
-destructor ISuite.Destroy;
+destructor TSuite.Destroy;
 begin
   children.Free;
   inherited;
 end;
 
 { ISpec }
-constructor ISpec.Create(description: String; callback: TProc);
+constructor TSpec.Create(description: String; callback: TProc);
 begin                
   // enumerate the spec in the active suite's children
-  context := ActiveSuite as ITest;
+  context := ActiveSuite as TTest;
   depth := ActiveSuite.depth + 1;  
-  ActiveSuite.AddChild(self as ITest);
+  ActiveSuite.AddChild(self as TTest);
   // set input properties
   self.description := description;
   self.callback := callback;
@@ -341,9 +372,10 @@ begin
   passed := true;
 end;
 
-procedure ISpec.Execute;
+procedure TSpec.Execute;
 begin
   try
+    inherited;
     callback();
   except
     on x: Exception do
@@ -351,31 +383,27 @@ begin
   end;
 end;
 
-procedure ISpec.Fail(x: Exception); overload;
-begin
-  IFailure.Create(self, x);
-end;
-
-procedure ISpec.Fail(msg: String); overload;
-begin
-  IFailure.Create(self, Exception.Create(msg));
-end;
-
 { IFailure }
-constructor IFailure.Create(context: ISpec; exception: Exception);
+constructor TFailure.Create(context: TTest; exception: Exception);
+var
+  spacing: String;
 begin
-  self.context := context as ITest;
+  if Assigned(LogMessage) then begin
+    spacing := StringOfChar(' ', (context.depth + 1) * 2);
+    LogMessage(spacing + 'FAILED: ' + exception.message);
+  end;
+  self.context := context;
   self.exception := exception; 
   MarkContextFailed;
   Failures.Add(self);
 end;
 
-procedure IFailure.MarkContextFailed;
+procedure TFailure.MarkContextFailed;
 const
   maxTestDepth = 100;
   MaxTestDepthError = 'Max test depth of 100 reached, check for recursive contexts.';
 var
-  currentContext: ITest;
+  currentContext: TTest;
   i: Integer;
 begin
   // prepare to loop 
@@ -398,8 +426,8 @@ end;
 initialization
 begin
   ActiveSuite := nil;
-  MainSuites := TInterfaceList.Create;
-  Failures := TInterfaceList.Create;
+  MainSuites := TList.Create;
+  Failures := TList.Create;
 end;
 
 finalization
