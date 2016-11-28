@@ -28,16 +28,16 @@ begin
         end);
     end);
 
-  Describe('You can evaluate expressions for expectations', procedure
+  Describe('Expressions for expectations', procedure
     begin
-      It('it can be a boolean value', procedure
+      It('can be a boolean value', procedure
         begin
           Expect(true, 'True passes');
           Expect(not false, 'Not false passes');
           Expect(true and not false, 'True and not false passes');
         end);
 
-      It('it can be an integer comparison', procedure
+      It('can be an integer comparison', procedure
         begin
           Expect(1 = 1, '1 equals 1');
           Expect(1 <> 2, '1 does not equal 2');
@@ -47,7 +47,7 @@ begin
           Expect(6 <= 6, '6 is greater than or equal to 6');
         end);
 
-      It('it can be a floating point comparison', procedure
+      It('can be a floating point comparison', procedure
         begin
           Expect(1.23 = 1.23, '1.23 equals 1.23');
           Expect(1.234 <> 1.23, '1.234 does not equal 1.23');
@@ -57,14 +57,14 @@ begin
           Expect(9.61 <= 9.61, '9.61 is less than or equal to 9.61');
         end);
 
-      It('it can be a string comparison', procedure
+      It('can be a string comparison', procedure
         begin
           Expect('Hello' = 'Hello', '''Hello'' equals ''Hello''');
           Expect('world' <> 'World', '''world'' is not equal to ''World''');
           Expect(SameText('abc', 'ABC'), '''abc'' is the same text as ''ABC''');
         end);
 
-      It('it can be any other code that returns a boolean', procedure
+      It('can be any other code that returns a boolean', procedure
         begin
           Expect(Pos('n', 'orange') > 0, 'orange has an n in it');
           Expect(36 / 10000 = 0, '36 divided by 10000 is 0');
