@@ -1,12 +1,12 @@
-program Vermilion;
+program Mahogany;
 
 {$APPTYPE CONSOLE}
 
 uses
   SysUtils,
-  veMain in 'veMain.pas';
+  maMain in 'maMain.pas';
 
-procedure BuildVermilionTests;
+procedure BuildMahoganyTests;
 var
   a: Boolean;
   obj: TObject;
@@ -222,7 +222,7 @@ begin
       end);
 end;
 
-procedure RunVermilionTests;
+procedure RunMahoganyTests;
 var
   LogToConsole: TMessageProc;
 begin
@@ -240,8 +240,8 @@ end;
 
 begin
   try
-    BuildVermilionTests;
-    RunVermilionTests;
+    BuildMahoganyTests;
+    RunMahoganyTests;
   except
     on E: Exception do
       Writeln(E.ClassName, ': ', E.Message);
