@@ -42,7 +42,7 @@ A suite
 
 Testing is broken into two major stages with Mahogany: building the tests and running them.  
 
-- `Describe` and `It` build a nested structure of test suites and expectations.
+- `Describe` and `It` build a nested structure of test suites and specs.
 - `RunTests` iterates through all top-level test suites and executes them.
 - `ReportResults` provides an overview of how many specs were run and how many failed.
 
