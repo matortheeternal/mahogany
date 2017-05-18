@@ -74,13 +74,16 @@ begin
 
   Describe('There are special expectations as well:', procedure
     begin
-      It('''ExpectEqual'' checks for equality', procedure
+      Describe('ExceptEqual', procedure
         begin
-          ExpectEqual(1, 1, 'One equals one');
-          ExpectEqual('test', 'test', '''test'' equals ''test''');
+          It('checks for equality', procedure
+            begin
+              ExpectEqual(1, 1, 'One equals one');
+              ExpectEqual('test', 'test', '''test'' equals ''test''');
+            end);
         end);
 
-      Describe('''ExpectException'' checks for', procedure
+      Describe('ExpectException checks for', procedure
         begin
           It('a specific exception', procedure
             begin
