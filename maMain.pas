@@ -81,7 +81,7 @@ implementation
 
 {******************************************************************************}
 { Public API
-  These functions provide the public API for Vermilion.
+  These functions provide the public API for Mahogany.
 }
 {******************************************************************************}
 
@@ -204,7 +204,7 @@ end;
 
 {******************************************************************************}
 { Private
-  These functions are private to Vermilion.  You should not call them from
+  These functions are private to Mahogany.  You should not call them from
   your code.
 }
 {******************************************************************************}
