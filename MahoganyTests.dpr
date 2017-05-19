@@ -1,10 +1,10 @@
-program Mahogany;
+program MahoganyTests;
 
 {$APPTYPE CONSOLE}
 
 uses
   SysUtils,
-  maMain in 'maMain.pas';
+  Mahogany in 'Mahogany.pas';
 
 procedure BuildMahoganyTests;
 var
