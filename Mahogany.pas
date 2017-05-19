@@ -53,14 +53,15 @@ type
   end;
 
   // PUBLIC API
+  procedure TestComment(comment: String);
   procedure Describe(description: String; callback: TProc);
   procedure BeforeAll(callback: TProc);
   procedure AfterAll(callback: TProc);
   procedure BeforeEach(callback: TProc);
   procedure AfterEach(callback: TProc);
   procedure It(description: String; callback: TProc; failAll: boolean = false);
-  procedure Expect(expectation: Boolean; description: String);
-  procedure ExpectEqual(v1, v2: Variant; description: String);
+  procedure Expect(expectation: Boolean; description: String = '');
+  procedure ExpectEqual(v1, v2: Variant; description: String = '');
   procedure ExpectException(proc: TProc; msg: String = '');
   procedure RunTests(messageProc: TMessageProc);
   procedure ReportResults(messageProc: TMessageProc);
@@ -84,6 +85,15 @@ implementation
   These functions provide the public API for Mahogany.
 }
 {******************************************************************************}
+
+{ Utility Functions }
+procedure TestComment(comment: String);
+var
+  spacing: string;
+begin
+  spacing := StringOfChar(' ', (ActiveSuite.depth + 2) * 2);
+  LogMessage(spacing + comment);
+end;
 
 { Suite Functions }
 procedure Describe(description: String; callback: TProc);
@@ -139,13 +149,13 @@ begin
 end;
 
 { Expectations }
-procedure Expect(expectation: Boolean; description: String);
+procedure Expect(expectation: Boolean; description: String = '');
 begin
   if not expectation then
     raise Exception.Create(description);
 end;
 
-procedure ExpectEqual(v1, v2: Variant; description: String);
+procedure ExpectEqual(v1, v2: Variant; description: String = '');
 const
   ErrorFormat = 'Expected "%s", found "%s"';
 begin
@@ -296,6 +306,7 @@ var
 begin
   try
     inherited;
+    ActiveSuite := self;
     // Setup before all tests if given
     if Assigned(BeforeAll) then BeforeAll;
 
