@@ -46,7 +46,7 @@ type
   TFailure = class(TObject)
   public
     context: TTest;
-    exception: Exception;
+    message: String;
 
     constructor Create(context: TTest; exception: Exception);
     procedure MarkContextFailed;
@@ -447,7 +447,7 @@ begin
     LogMessage(spacing + 'FAILED: ' + exception.message);
   end;
   self.context := context;
-  self.exception := exception; 
+  self.message := exception.message; 
   MarkContextFailed;
   Failures.Add(self);
 end;
@@ -480,7 +480,7 @@ function TFailure.ToString: String;
 var
   currentContext: TTest;
 begin
-  Result := exception.Message;
+  Result := self.message;
   if Result = '' then
     Result := 'FAILED';
   currentContext := self.context;
